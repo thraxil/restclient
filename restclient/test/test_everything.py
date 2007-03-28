@@ -119,7 +119,7 @@ def test_post_unicode():
                   params={u'foo\u2012' : u'\u2012'},
                   async=False)
     assert result.startswith('POST /foo/')
-    expected = "Zm9vJUUyJTgwJTkyPSVFMiU4MCU5Mg==" # urlencoded and base64'd
+    expected = "foo%E2%80%92=%E2%80%92" # urlencoded 
     assert expected in result
 
 

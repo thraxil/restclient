@@ -26,6 +26,8 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2007-03-28 - Anders - merged Christopher Hesse's patches for fix_params and to eliminate
+                          mutable default args
   * 2007-03-14 - Anders - quieted BaseHTTPServer in the test suite
   * 2007-03-06 - Anders - merged Christopher Hesse's bugfix and self-contained test suite
   * 2006-12-01 - Anders - switched to httplib2. Improved handling of parameters and made it
@@ -45,15 +47,16 @@ n                          and we now use post_multipart for everything since it
 
 import urllib2,urllib, mimetypes, types, thread, httplib2
 
-__version__ = "0.9.7"
+__version__ = "0.9.8"
 
-def post_multipart(host, selector, method,fields, files, headers={},return_resp=False):
+def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
     files is a sequence of (name, filename, value) elements for data to be uploaded as files
     Return the server's response page.
     """
+    if headers is None: headers = {}
     content_type, body = encode_multipart_formdata(fields, files)
     h = httplib2.Http()
     headers['Content-Length'] = str(len(body))
@@ -96,7 +99,7 @@ def get_content_type(filename):
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
 
-def GET(url,params={},files={},accept=[],headers={},async=False,resp=False):
+def GET(url,params=None,files=None,accept=[],headers=None,async=False,resp=False):
     """ make an HTTP GET request.
 
     performs a GET request to the specified URL and returns the body of the response.
@@ -112,7 +115,7 @@ def GET(url,params={},files={},accept=[],headers={},async=False,resp=False):
     """
     return rest_invoke(url=url,method=u"GET",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp)
 
-def POST(url,params={},files={},accept=[],headers={},async=True,resp=False):
+def POST(url,params=None,files=None,accept=[],headers=None,async=True,resp=False):
     """ make an HTTP POST request.
 
     performs a POST request to the specified URL.
@@ -135,7 +138,7 @@ def POST(url,params={},files={},accept=[],headers={},async=True,resp=False):
     """
     return rest_invoke(url=url,method=u"POST",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp)
 
-def PUT(url,params={},files={},accept=[],headers={},async=True,resp=False):
+def PUT(url,params=None,files=None,accept=[],headers=None,async=True,resp=False):
     """ make an HTTP PUT request.
 
     performs a PUT request to the specified URL.
@@ -159,7 +162,7 @@ def PUT(url,params={},files={},accept=[],headers={},async=True,resp=False):
 
     return rest_invoke(url=url,method=u"PUT",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp)
 
-def DELETE(url,params={},files={},accept=[],headers={},async=True,resp=False):
+def DELETE(url,params=None,files=None,accept=[],headers=None,async=True,resp=False):
     """ make an HTTP DELETE request.
 
     performs a DELETE request to the specified URL.
@@ -177,7 +180,7 @@ def DELETE(url,params={},files={},accept=[],headers={},async=True,resp=False):
     
     return rest_invoke(url=url,method=u"DELETE",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp)
 
-def rest_invoke(url,method=u"GET",params={},files={},accept=[],headers={},async=False,resp=False):
+def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,async=False,resp=False):
     """ make an HTTP request with all the trimmings.
 
     rest_invoke() will make an HTTP request and can handle all the
@@ -220,7 +223,12 @@ def rest_invoke(url,method=u"GET",params={},files={},accept=[],headers={},async=
     else:
         return _rest_invoke(url,method,params,files,accept,headers,resp)
 
-def _rest_invoke(url,method=u"GET",params={},files={},accept=[],headers={},resp=False):
+def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=None,resp=False):
+    if params  is None: params  = {}
+    if files   is None: files   = {}
+    if accept  is None: accept  = []
+    if headers is None: headers = {}
+    
     headers = add_accepts(accept,headers)
     if files:
         return post_multipart(extract_host(url),extract_path(url),
@@ -280,14 +288,18 @@ def unpack_params(params):
 def unpack_files(files):
     return [(k,files[k]['filename'],files[k]['file']) for k in files.keys()]
 
-def add_accepts(accept=[],headers={}):
+def add_accepts(accept=None,headers=None):
+    if accept  is None: accept  = []
+    if headers is None: headers = {}
+    
     if accept:
         headers['Accept'] = ','.join(accept)
     else:
         headers['Accept'] = '*/*'
     return headers
 
-def fix_params(params={}):
+def fix_params(params=None):
+    if params is None: params = {}
     for k in params.keys():
         if type(k) not in types.StringTypes:
             new_k = str(k)
@@ -316,7 +328,8 @@ def fix_params(params={}):
 
     return params
 
-def fix_headers(headers={}):
+def fix_headers(headers=None):
+    if headers is None: headers = {}
     for k in headers.keys():
         if type(k) not in types.StringTypes:
             new_k = str(k)
@@ -334,7 +347,8 @@ def fix_headers(headers={}):
             del headers[k]
     return headers
 
-def fix_files(files={}):
+def fix_files(files=None):
+    if files is None: files = {}
     # fix keys in files
     for k in files.keys():
         if type(k) not in types.StringTypes:

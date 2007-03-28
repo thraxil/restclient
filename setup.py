@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="restclient",
-    version="0.9.7",
+    version="0.9.8",
     author="Anders Pearson",
     author_email="anders@columbia.edu",
     url="http://microapps.sourceforge.net/restclient/",
