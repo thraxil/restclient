@@ -300,6 +300,8 @@ def fix_params(params={}):
                 new_k = k.encode('utf8')
                 params[new_k] = params[k]
                 del params[k]
+            except UnicodeDecodeError:
+                pass
 
     for k in params.keys():
         if type(params[k]) not in types.StringTypes:
@@ -309,6 +311,8 @@ def fix_params(params={}):
         except UnicodeEncodeError:
             new_v = params[k].encode('utf8')
             params[k] = new_v
+        except UnicodeDecodeError:
+            pass
 
     return params
 
