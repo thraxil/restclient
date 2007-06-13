@@ -26,6 +26,7 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2007-06-13 - Anders - added experimental, partial support for HTTPCallback
   * 2007-03-28 - Anders - merged Christopher Hesse's patches for fix_params and to eliminate
                           mutable default args
   * 2007-03-14 - Anders - quieted BaseHTTPServer in the test suite
@@ -47,7 +48,7 @@ n                          and we now use post_multipart for everything since it
 
 import urllib2,urllib, mimetypes, types, thread, httplib2
 
-__version__ = "0.9.8"
+__version__ = "0.9.9"
 
 def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False):
     """
@@ -180,7 +181,7 @@ def DELETE(url,params=None,files=None,accept=[],headers=None,async=True,resp=Fal
     
     return rest_invoke(url=url,method=u"DELETE",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp)
 
-def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,async=False,resp=False):
+def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,async=False,resp=False,httpcallback=None):
     """ make an HTTP request with all the trimmings.
 
     rest_invoke() will make an HTTP request and can handle all the
@@ -216,18 +217,45 @@ def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,
     headers: dictionary of additional headers to send to the server
     async: Boolean. if true, does request in new thread and nothing is returned
     resp: Boolean. if true, returns a tuple of response,content. otherwise returns just content
+    httpcallback: None. an HTTPCallback object (see http://microapps.org/HTTP_Callback). If specified, it will
+                  override the other params.
     
     """
     if async:
-        thread.start_new_thread(_rest_invoke,(url,method,params,files,accept,headers,resp))
+        thread.start_new_thread(_rest_invoke,(url,method,params,files,accept,headers,resp,httpcallback))
     else:
-        return _rest_invoke(url,method,params,files,accept,headers,resp)
+        return _rest_invoke(url,method,params,files,accept,headers,resp,httpcallback)
 
-def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=None,resp=False):
+def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=None,resp=False,httpcallback=None):
     if params  is None: params  = {}
     if files   is None: files   = {}
     if accept  is None: accept  = []
     if headers is None: headers = {}
+
+    if httpcallback is not None:
+        method = httpcallback.method
+        url    = httpcallback.url
+        if httpcallback.queryString != "":
+            if "?" not in url:
+                url += "?" + httpcallback.queryString
+            else:
+                url += "&" * httpcallback.queryString
+        ps = httpcallback.params
+        for (k,v) in ps:
+            params[k] = v
+        hs = httpcallback.headers
+        for (k,v) in hs:
+            headers[k] = v
+
+        if httpcallback.username or httpcallback.password:
+            print "warning: restclient can't handle HTTP auth yet"
+        if httpcallback.redirections != 5:
+            print "warning: restclient doesn't support HTTPCallback's restrictions yet"
+        if httpcallback.follow_all_redirects:
+            print "warning: restclient doesn't support HTTPCallback's follow_all_redirects_yet"
+        if httpcallback.body != "":
+            print "warning: restclient doesn't support HTTPCallback's body yet"
+        
     
     headers = add_accepts(accept,headers)
     if files:
