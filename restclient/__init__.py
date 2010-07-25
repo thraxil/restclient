@@ -76,7 +76,7 @@ import urllib2,urllib, mimetypes, types, thread, httplib2
 
 __version__ = "0.9.9"
 
-def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False):
+def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False, scheme="http"):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
@@ -88,7 +88,7 @@ def post_multipart(host, selector, method,fields, files, headers=None,return_res
     h = httplib2.Http()
     headers['Content-Length'] = str(len(body))
     headers['Content-Type']   = content_type
-    resp, content = h.request("http://%s%s" % (host,selector),method,body,headers)
+    resp, content = h.request("%s://%s%s" % (scheme,host,selector),method,body,headers)
     if return_resp:
         return resp, content
     else:
@@ -290,12 +290,13 @@ def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=No
                               unpack_params(fix_params(params)),
                               unpack_files(fix_files(files)),
                               fix_headers(headers),
-                              resp)
+                              resp, scheme=extract_scheme(url))
     else:
         return non_multipart(fix_params(params), extract_host(url),
-                             method, extract_path(url), fix_headers(headers),resp)
+                             method, extract_path(url), fix_headers(headers),resp,
+                             scheme=extract_scheme(url))
 
-def non_multipart(params,host,method,path,headers,return_resp):
+def non_multipart(params,host,method,path,headers,return_resp,scheme="http"):
     params = urllib.urlencode(params)
     if method == "GET":
         headers['Content-Length'] = '0'
@@ -314,7 +315,7 @@ def non_multipart(params,host,method,path,headers,return_resp):
     if not headers.has_key('Content-Type'):
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
     h = httplib2.Http()
-    url = "http://%s%s" % (host,path)
+    url = "%s://%s%s" % (scheme,host,path)
     resp,content = h.request(url,method.encode('utf-8'),params.encode('utf-8'),headers)
     if return_resp:
         return resp,content
@@ -322,10 +323,13 @@ def non_multipart(params,host,method,path,headers,return_resp):
         return content
 
 def extract_host(url):
+    return my_urlparse(url)[1]
+
+def extract_scheme(url):
     return my_urlparse(url)[0]
 
 def extract_path(url):
-    return my_urlparse(url)[1]
+    return my_urlparse(url)[2]
 
 def my_urlparse(url):
     (scheme,host,path,ps,query,fragment) = urllib2.urlparse.urlparse(url)
@@ -334,7 +338,7 @@ def my_urlparse(url):
     if query:
         path += "?" + query
 
-    return (host,path)
+    return (scheme,host,path)
         
 def unpack_params(params):
     return [(k,params[k]) for k in params.keys()]
