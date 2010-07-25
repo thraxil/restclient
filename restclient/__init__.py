@@ -52,6 +52,7 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2010-07-25 - Anders - merged Greg Baker's <gregb@ifost.org.au> patch for https urls
   * 2007-06-13 - Anders - added experimental, partial support for HTTPCallback
   * 2007-03-28 - Anders - merged Christopher Hesse's patches for fix_params and to eliminate
                           mutable default args
