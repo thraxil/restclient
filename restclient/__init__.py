@@ -318,7 +318,7 @@ def non_multipart(params,host,method,path,headers,return_resp,scheme="http",cred
             params = ""
     else:
         headers['Content-Length'] = str(len(params))
-    if not headers.has_key('Content-Type'):
+    if method in ['POST', 'PUT'] and not headers.has_key('Content-Type'):
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
     h = httplib2.Http()
     if credentials:

@@ -70,7 +70,7 @@ def start_server(callback):
         def body(self):
             ct = self.headers.getheader('content-type')
             body = self.rfile.read(int(self.headers.getheader('content-length')))
-            if ct.startswith('multipart/form-data'):
+            if ct and ct.startswith('multipart/form-data'):
                 return "multipart: %d\n" % len(body) + body.encode('base64')
             else:
                 return body
