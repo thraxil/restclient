@@ -76,7 +76,7 @@ n                          and we now use post_multipart for everything since it
 
 import urllib2,urllib, mimetypes, types, thread, httplib2
 
-__version__ = "0.9.9"
+__version__ = "0.10.1"
 
 def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False, scheme="http", credentials=None):
     """
