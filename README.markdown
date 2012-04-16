@@ -48,9 +48,10 @@ Doing an asynchronous GET would be silly and pointless so I won't give an exampl
 With any of those, if you add a return_resp=True argument, restclient
 will make the request like normal and then return the raw httplib2
 response object. You'll have to extract the response body yourself,
-but you'll also have access to the HTTP response codes, etc. If you
-need finer grain control of the request, you are encouraged to just
-use httplib2 directly. 
+but you'll also have access to the HTTP response codes, etc.
+
+For finer grained control over the httplib2 library use the keyword 'httplib_params' to supply a dict of key/value pairs.  This will be passed unadulterated as parameters to httplib2.Http().
+
 
 Credits
 =======

@@ -52,6 +52,7 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2012-04-16 - alexmock - added httplib_params for fine-grained control of httplib2
   * 2010-10-11 - Anders - added 'credentials' parameter to support HTTP Auth
   * 2010-07-25 - Anders - merged Greg Baker's <gregb@ifost.org.au> patch for https urls
   * 2007-06-13 - Anders - added experimental, partial support for HTTPCallback
@@ -76,9 +77,9 @@ n                          and we now use post_multipart for everything since it
 
 import urllib2,urllib, mimetypes, types, thread, httplib2
 
-__version__ = "0.10.1"
+__version__ = "0.10.2"
 
-def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False, scheme="http", credentials=None):
+def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False, scheme="http", credentials=None, httplib_params={}):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
@@ -87,7 +88,7 @@ def post_multipart(host, selector, method,fields, files, headers=None,return_res
     """
     if headers is None: headers = {}
     content_type, body = encode_multipart_formdata(fields, files)
-    h = httplib2.Http()
+    h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     headers['Content-Length'] = str(len(body))
@@ -130,7 +131,7 @@ def get_content_type(filename):
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
 
-def GET(url,params=None,files=None,accept=[],headers=None,async=False,resp=False,credentials=None):
+def GET(url,params=None,files=None,accept=[],headers=None,async=False,resp=False,credentials=None, httplib_params={}):
     """ make an HTTP GET request.
 
     performs a GET request to the specified URL and returns the body of the response.
@@ -144,9 +145,9 @@ def GET(url,params=None,files=None,accept=[],headers=None,async=False,resp=False
     if resp=True is passed in, it will return a tuple of an httplib2 response object
     and the content instead of just the content. 
     """
-    return rest_invoke(url=url,method=u"GET",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials)
+    return rest_invoke(url=url,method=u"GET",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials, httplib_params=httplib_params)
 
-def POST(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None):
+def POST(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None, httplib_params={}):
     """ make an HTTP POST request.
 
     performs a POST request to the specified URL.
@@ -167,9 +168,9 @@ def POST(url,params=None,files=None,accept=[],headers=None,async=True,resp=False
     if resp=True is passed in, it will return a tuple of an httplib2 response object
     and the content instead of just the content. 
     """
-    return rest_invoke(url=url,method=u"POST",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials)
+    return rest_invoke(url=url,method=u"POST",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials, httplib_params=httplib_params)
 
-def PUT(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None):
+def PUT(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None, httplib_params={}):
     """ make an HTTP PUT request.
 
     performs a PUT request to the specified URL.
@@ -191,9 +192,9 @@ def PUT(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,
     and the content instead of just the content. 
     """
 
-    return rest_invoke(url=url,method=u"PUT",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials)
+    return rest_invoke(url=url,method=u"PUT",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials, httplib_params=httplib_params)
 
-def DELETE(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None):
+def DELETE(url,params=None,files=None,accept=[],headers=None,async=True,resp=False,credentials=None, httplib_params={}):
     """ make an HTTP DELETE request.
 
     performs a DELETE request to the specified URL.
@@ -209,9 +210,9 @@ def DELETE(url,params=None,files=None,accept=[],headers=None,async=True,resp=Fal
     and the content instead of just the content. 
     """
     
-    return rest_invoke(url=url,method=u"DELETE",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials)
+    return rest_invoke(url=url,method=u"DELETE",params=params,files=files,accept=accept,headers=headers,async=async,resp=resp,credentials=credentials, httplib_params=httplib_params)
 
-def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,async=False,resp=False,httpcallback=None,credentials=None):
+def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,async=False,resp=False,httpcallback=None,credentials=None, httplib_params={}):
     """ make an HTTP request with all the trimmings.
 
     rest_invoke() will make an HTTP request and can handle all the
@@ -249,14 +250,15 @@ def rest_invoke(url,method=u"GET",params=None,files=None,accept=[],headers=None,
     resp: Boolean. if true, returns a tuple of response,content. otherwise returns just content
     httpcallback: None. an HTTPCallback object (see http://microapps.org/HTTP_Callback). If specified, it will
                   override the other params.
+    httplib_params: dict of parameters supplied to httplib2 - for example ca_certs='/etc/ssl/certs/ca-certificates.crt'
     
     """
     if async:
-        thread.start_new_thread(_rest_invoke,(url,method,params,files,accept,headers,resp,httpcallback,credentials))
+        thread.start_new_thread(_rest_invoke,(url,method,params,files,accept,headers,resp,httpcallback,credentials,httplib_params))
     else:
-        return _rest_invoke(url,method,params,files,accept,headers,resp,httpcallback,credentials)
+        return _rest_invoke(url,method,params,files,accept,headers,resp,httpcallback,credentials,httplib_params)
 
-def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=None,resp=False,httpcallback=None,credentials=None):
+def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=None,resp=False,httpcallback=None,credentials=None,httplib_params={}):
     if params  is None: params  = {}
     if files   is None: files   = {}
     if accept  is None: accept  = []
@@ -295,14 +297,16 @@ def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=No
                               unpack_files(fix_files(files)),
                               fix_headers(headers),
                               resp, scheme=extract_scheme(url),
-                              credentials=credentials)
+                              credentials=credentials,
+                              httplib_params=httplib_params)
     else:
         return non_multipart(fix_params(params), extract_host(url),
                              method, extract_path(url), fix_headers(headers),resp,
                              scheme=extract_scheme(url),
-                             credentials=credentials)
+                             credentials=credentials,
+                             httplib_params=httplib_params)
 
-def non_multipart(params,host,method,path,headers,return_resp,scheme="http",credentials=None):
+def non_multipart(params,host,method,path,headers,return_resp,scheme="http",credentials=None,httplib_params={}):
     params = urllib.urlencode(params)
     if method == "GET":
         headers['Content-Length'] = '0'
@@ -320,7 +324,7 @@ def non_multipart(params,host,method,path,headers,return_resp,scheme="http",cred
         headers['Content-Length'] = str(len(params))
     if method in ['POST', 'PUT'] and not headers.has_key('Content-Type'):
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    h = httplib2.Http()
+    h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     url = "%s://%s%s" % (scheme,host,path)
