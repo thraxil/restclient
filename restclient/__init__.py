@@ -52,6 +52,7 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2012-11-16 - hickey - added debuglevel to httplib_params
   * 2012-04-16 - alexmock - added httplib_params for fine-grained control of httplib2
   * 2010-10-11 - Anders - added 'credentials' parameter to support HTTP Auth
   * 2010-07-25 - Anders - merged Greg Baker's <gregb@ifost.org.au> patch for https urls
