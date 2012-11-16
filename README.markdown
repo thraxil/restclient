@@ -59,10 +59,16 @@ for the one REST call and then reset to the previous value which allows
 general debugging to be enabled and then override with detailed debugging 
 for specific calls.  
 
+The handling of JSON data in POST and PUT requests is now handled by setting
+the 'params' option to the data structure and adding a Content-Type header 
+set to 'application/json'. For example:
+
+    POST("http://www.example.com", params={'name':'Some User', 'action':'create'}, headers={'Conent-Type': 'application/json'})
+
 
 Credits
 =======
 
 written by Anders Pearson at the [Columbia Center For New Media Teaching And Learning](http://ccnmtl.columbia.edu/).
 
-httplib2 debugging added by Gerard Hickey (ghickey@ebay.com)
+httplib2 debugging and JSON support added by Gerard Hickey (ghickey@ebay.com)
