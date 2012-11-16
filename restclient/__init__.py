@@ -88,12 +88,20 @@ def post_multipart(host, selector, method,fields, files, headers=None,return_res
     """
     if headers is None: headers = {}
     content_type, body = encode_multipart_formdata(fields, files)
+    
+    # Check for debuglevel in httplib_params
+    orig_debuglevel = httplib2.debuglevel
+    if httplib_params.has_key('debuglevel'):
+        httplib2.debuglevel = httplib_params['debuglevel']
+        del httplib_params['debuglevel']
     h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     headers['Content-Length'] = str(len(body))
     headers['Content-Type']   = content_type
     resp, content = h.request("%s://%s%s" % (scheme,host,selector),method,body,headers)
+    # reset httplib2 debuglevel to original value
+    httplib2.debuglevel = orig_debuglevel
     if return_resp:
         return resp, content
     else:
@@ -324,11 +332,19 @@ def non_multipart(params,host,method,path,headers,return_resp,scheme="http",cred
         headers['Content-Length'] = str(len(params))
     if method in ['POST', 'PUT'] and not headers.has_key('Content-Type'):
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        
+    # Check for debuglevel in httplib_params
+    orig_debuglevel = httplib2.debuglevel
+    if httplib_params.has_key('debuglevel'):
+        httplib2.debuglevel = httplib_params['debuglevel']
+        del httplib_params['debuglevel']
     h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     url = "%s://%s%s" % (scheme,host,path)
     resp,content = h.request(url,method.encode('utf-8'),params.encode('utf-8'),headers)
+    # reset httplib2 debuglevel to original value
+    httplib2.debuglevel = orig_debuglevel
     if return_resp:
         return resp,content
     else:
