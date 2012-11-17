@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Copyright (c) 2007
 # Columbia Center For New Media Teaching And Learning (CCNMTL)
 # All rights reserved.
@@ -25,8 +27,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#!/usr/bin/python
-
 """
 REST client convenience library
 
@@ -53,6 +53,7 @@ Joe Gregario's httplib2 library is required. It can be easy_installed,
 or downloaded nose is required to run the unit tests.
 
 CHANGESET:
+  * 2012-11-17 - Anders - flake8 cleanup, version bump
   * 2012-11-16 - hickey - added support for sending JSON data
   * 2012-11-16 - hickey - added debuglevel to httplib_params
   * 2012-04-16 - alexmock - added httplib_params for fine-grained control of
@@ -93,7 +94,7 @@ except ImportError:
     import simplejson as json
 
 
-__version__ = "0.10.2"
+__version__ = "0.11.0"
 
 
 def post_multipart(host, selector, method, fields, files, headers=None,
