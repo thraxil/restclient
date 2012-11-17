@@ -63,7 +63,7 @@ The handling of JSON data in POST and PUT requests is now handled by setting
 the 'params' option to the data structure and adding a Content-Type header 
 set to 'application/json'. For example:
 
-    POST("http://www.example.com", params={'name':'Some User', 'action':'create'}, headers={'Conent-Type': 'application/json'})
+    POST("http://www.example.com", params={'name':'Some User', 'action':'create'}, headers={'Content-Type': 'application/json'})
 
 
 Credits
