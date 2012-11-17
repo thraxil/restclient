@@ -98,7 +98,7 @@ __version__ = "0.10.2"
 
 def post_multipart(host, selector, method, fields, files, headers=None,
                    return_resp=False, scheme="http", credentials=None,
-                   httplib_params={}):
+                   httplib_params=None):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form
@@ -108,6 +108,8 @@ def post_multipart(host, selector, method, fields, files, headers=None,
     """
     if headers is None:
         headers = {}
+    if httplib_params is None:
+        httplib_params = {}
     content_type, body = encode_multipart_formdata(fields, files)
 
     # Check for debuglevel in httplib_params
@@ -166,7 +168,7 @@ def get_content_type(filename):
 
 
 def GET(url, params=None, files=None, accept=[], headers=None, async=False,
-        resp=False, credentials=None, httplib_params={}):
+        resp=False, credentials=None, httplib_params=None):
     """ make an HTTP GET request.
 
     performs a GET request to the specified URL and returns the body
@@ -188,7 +190,7 @@ def GET(url, params=None, files=None, accept=[], headers=None, async=False,
 
 
 def POST(url, params=None, files=None, accept=[], headers=None,
-         async=True, resp=False, credentials=None, httplib_params={}):
+         async=True, resp=False, credentials=None, httplib_params=None):
     """ make an HTTP POST request.
 
     performs a POST request to the specified URL.
@@ -218,7 +220,7 @@ def POST(url, params=None, files=None, accept=[], headers=None,
 
 
 def PUT(url, params=None, files=None, accept=[], headers=None,
-        async=True, resp=False, credentials=None, httplib_params={}):
+        async=True, resp=False, credentials=None, httplib_params=None):
     """ make an HTTP PUT request.
 
     performs a PUT request to the specified URL.
@@ -250,7 +252,7 @@ def PUT(url, params=None, files=None, accept=[], headers=None,
 
 def DELETE(url, params=None, files=None, accept=[], headers=None,
            async=True, resp=False, credentials=None,
-           httplib_params={}):
+           httplib_params=None):
     """ make an HTTP DELETE request.
 
     performs a DELETE request to the specified URL.
@@ -277,7 +279,7 @@ def DELETE(url, params=None, files=None, accept=[], headers=None,
 def rest_invoke(url, method=u"GET", params=None, files=None,
                 accept=[], headers=None, async=False, resp=False,
                 httpcallback=None, credentials=None,
-                httplib_params={}):
+                httplib_params=None):
     """ make an HTTP request with all the trimmings.
 
     rest_invoke() will make an HTTP request and can handle all the
@@ -334,7 +336,7 @@ def rest_invoke(url, method=u"GET", params=None, files=None,
 
 def _rest_invoke(url, method=u"GET", params=None, files=None, accept=None,
                  headers=None, resp=False, httpcallback=None,
-                 credentials=None, httplib_params={}):
+                 credentials=None, httplib_params=None):
     if params is None:
         params = {}
     if files is None:
@@ -400,7 +402,9 @@ def _rest_invoke(url, method=u"GET", params=None, files=None, accept=None,
 
 
 def non_multipart(params, host, method, path, headers, return_resp,
-                  scheme="http", credentials=None, httplib_params={}):
+                  scheme="http", credentials=None, httplib_params=None):
+    if httplib_params is None:
+        httplib_params = {}
     if method == "GET":
         headers['Content-Length'] = '0'
         if params:
