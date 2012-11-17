@@ -50,10 +50,25 @@ will make the request like normal and then return the raw httplib2
 response object. You'll have to extract the response body yourself,
 but you'll also have access to the HTTP response codes, etc.
 
-For finer grained control over the httplib2 library use the keyword 'httplib_params' to supply a dict of key/value pairs.  This will be passed unadulterated as parameters to httplib2.Http().
+For finer grained control over the httplib2 library use the keyword 'httplib_params' 
+to supply a dict of key/value pairs.  This will be passed unadulterated as 
+parameters to httplib2.Http(). In addition, you can now include a debuglevel as
+a key to 'httplib_params' to see the debug output from httplib2. The value 
+is an integer for the amount of debug output desired. The debug level is set
+for the one REST call and then reset to the previous value which allows 
+general debugging to be enabled and then override with detailed debugging 
+for specific calls.  
+
+The handling of JSON data in POST and PUT requests is now handled by setting
+the 'params' option to the data structure and adding a Content-Type header 
+set to 'application/json'. For example:
+
+    POST("http://www.example.com", params={'name':'Some User', 'action':'create'}, headers={'Conent-Type': 'application/json'})
 
 
 Credits
 =======
 
 written by Anders Pearson at the [Columbia Center For New Media Teaching And Learning](http://ccnmtl.columbia.edu/).
+
+httplib2 debugging and JSON support added by Gerard Hickey (ghickey@ebay.com)

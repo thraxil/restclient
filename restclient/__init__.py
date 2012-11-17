@@ -52,6 +52,8 @@ Joe Gregario's httplib2 library is required. It can be easy_installed, or downlo
 nose is required to run the unit tests.
 
 CHANGESET:
+  * 2012-11-16 - hickey - added support for sending JSON data
+  * 2012-11-16 - hickey - added debuglevel to httplib_params
   * 2012-04-16 - alexmock - added httplib_params for fine-grained control of httplib2
   * 2010-10-11 - Anders - added 'credentials' parameter to support HTTP Auth
   * 2010-07-25 - Anders - merged Greg Baker's <gregb@ifost.org.au> patch for https urls
@@ -76,7 +78,12 @@ n                          and we now use post_multipart for everything since it
 
 
 import urllib2,urllib, mimetypes, types, thread, httplib2
-
+try:
+    import json
+except ImportError:
+    import simplejson as json
+    
+    
 __version__ = "0.10.2"
 
 def post_multipart(host, selector, method,fields, files, headers=None,return_resp=False, scheme="http", credentials=None, httplib_params={}):
@@ -88,12 +95,20 @@ def post_multipart(host, selector, method,fields, files, headers=None,return_res
     """
     if headers is None: headers = {}
     content_type, body = encode_multipart_formdata(fields, files)
+    
+    # Check for debuglevel in httplib_params
+    orig_debuglevel = httplib2.debuglevel
+    if httplib_params.has_key('debuglevel'):
+        httplib2.debuglevel = httplib_params['debuglevel']
+        del httplib_params['debuglevel']
     h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     headers['Content-Length'] = str(len(body))
     headers['Content-Type']   = content_type
     resp, content = h.request("%s://%s%s" % (scheme,host,selector),method,body,headers)
+    # reset httplib2 debuglevel to original value
+    httplib2.debuglevel = orig_debuglevel
     if return_resp:
         return resp, content
     else:
@@ -290,24 +305,32 @@ def _rest_invoke(url,method=u"GET",params=None,files=None,accept=None,headers=No
         
     
     headers = add_accepts(accept,headers)
+    if method in ['POST', 'PUT'] and not headers.has_key('Content-Type'):
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        params = urllib.urlencode(fix_params(params))
+    elif method in ['POST', 'PUT'] and headers['Content-Type'] == 'application/json':
+        params = json.dumps(params)
+    else:
+        # GET and DELETE requests
+        params = urllib.urlencode(fix_params(params))
+        
     if files:
         return post_multipart(extract_host(url),extract_path(url),
                               method,
-                              unpack_params(fix_params(params)),
+                              unpack_params(params),
                               unpack_files(fix_files(files)),
                               fix_headers(headers),
                               resp, scheme=extract_scheme(url),
                               credentials=credentials,
                               httplib_params=httplib_params)
     else:
-        return non_multipart(fix_params(params), extract_host(url),
+        return non_multipart(params, extract_host(url),
                              method, extract_path(url), fix_headers(headers),resp,
                              scheme=extract_scheme(url),
                              credentials=credentials,
                              httplib_params=httplib_params)
 
 def non_multipart(params,host,method,path,headers,return_resp,scheme="http",credentials=None,httplib_params={}):
-    params = urllib.urlencode(params)
     if method == "GET":
         headers['Content-Length'] = '0'
         if params:
@@ -322,13 +345,19 @@ def non_multipart(params,host,method,path,headers,return_resp,scheme="http",cred
             params = ""
     else:
         headers['Content-Length'] = str(len(params))
-    if method in ['POST', 'PUT'] and not headers.has_key('Content-Type'):
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        
+    # Check for debuglevel in httplib_params
+    orig_debuglevel = httplib2.debuglevel
+    if httplib_params.has_key('debuglevel'):
+        httplib2.debuglevel = httplib_params['debuglevel']
+        del httplib_params['debuglevel']
     h = httplib2.Http(**httplib_params)
     if credentials:
         h.add_credentials(*credentials)
     url = "%s://%s%s" % (scheme,host,path)
     resp,content = h.request(url,method.encode('utf-8'),params.encode('utf-8'),headers)
+    # reset httplib2 debuglevel to original value
+    httplib2.debuglevel = orig_debuglevel
     if return_resp:
         return resp,content
     else:
