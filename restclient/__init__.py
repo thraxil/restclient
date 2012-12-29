@@ -109,6 +109,9 @@ def post_multipart(host, selector, method,fields, files, headers=None,return_res
     resp, content = h.request("%s://%s%s" % (scheme,host,selector),method,body,headers)
     # reset httplib2 debuglevel to original value
     httplib2.debuglevel = orig_debuglevel
+    # if the content-type is JSON, then convert back to objects.
+    if resp['content-type'] == 'application/json':
+        content = json.loads(content)
     if return_resp:
         return resp, content
     else:
@@ -358,6 +361,9 @@ def non_multipart(params,host,method,path,headers,return_resp,scheme="http",cred
     resp,content = h.request(url,method.encode('utf-8'),params.encode('utf-8'),headers)
     # reset httplib2 debuglevel to original value
     httplib2.debuglevel = orig_debuglevel
+    # if the content-type is JSON, then convert back to objects.
+    if resp['content-type'] == 'application/json':
+        content = json.loads(content)
     if return_resp:
         return resp,content
     else:
