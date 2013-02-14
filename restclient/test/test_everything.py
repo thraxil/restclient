@@ -1,4 +1,4 @@
-# Copyright (c) 2007, Columbia Center For New Media Teaching And Learning (CCNMTL)
+# Copyright 2007, Columbia Center For New Media Teaching And Learning (CCNMTL)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,12 @@
 Requires nose and HTTPretty to run
 """
 
-from restclient import *
+from restclient import GET, POST
 from httpretty import HTTPretty, httprettified
 
 test_url = "http://example.com/"
 default_body = "Simple response"
+
 
 @httprettified
 def test_get():
@@ -41,7 +42,7 @@ def test_get():
         test_url,
         body=default_body,
         content_type="text/html"
-        )
+    )
     r = GET(test_url)
     assert r == default_body
     assert HTTPretty.last_request.method == "GET"
@@ -54,11 +55,11 @@ def test_post():
         test_url,
         body=default_body,
         content_type="text/html"
-        )
+    )
     r = POST(
         test_url,
-        params={'value' : 'store this'},
-        accept=["text/plain","text/html"],
+        params={'value': 'store this'},
+        accept=["text/plain", "text/html"],
         async=False)
     assert r == default_body
     assert HTTPretty.last_request.method == "POST"
