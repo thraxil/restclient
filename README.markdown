@@ -1,6 +1,25 @@
 Restclient
 ==========
 
+Status Note
+-----------
+
+restclient is still maintained and in production use by the
+author. However, I would not recommend starting new projects with
+it. restclient was written years ago when the only options available
+were raw httplib2/urllib type libraries and made my (and others') life
+much easier. Now though, the `requests` library is available, better
+documented, better tested, and more widely understood. `requests` does
+everything restclient does so if you should use it instead.
+
+I'm happy to take patches and bugfixes on restclient and will try to
+keep it alive and available for anyone who is already using and
+doesn't feel the need to switch. But there will probably not be any
+new development on restclient.
+
+Introduction
+------------
+
 A helper library to make writing REST clients in python extremely
 simple. Specifically, while httplib2 and similar libraries are very
 efficient and powerful, doing something very simple like making a POST
@@ -9,7 +28,7 @@ code. Restclient tries to make these common tasks simple. It does not
 try to do everything though. If you need to construct a request in a
 very particular way, are expecting a large result, or need better
 error handling, nothing is stopping you from using one of the lower
-level libraries directly for that. 
+level libraries directly for that.
 
 Installation
 ============
