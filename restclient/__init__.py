@@ -127,6 +127,13 @@ def post_multipart(host, selector, method, fields, files, headers=None,
                               method, body, headers)
     # reset httplib2 debuglevel to original value
     httplib2.debuglevel = orig_debuglevel
+    # if the content-type is JSON, then convert back to objects.
+    if resp['content-type'].startswith('application/json'):
+        content = json.loads(content)
+    elif method == 'GET' and content.startswith('{') and content.endswith('}'):
+        content = json.loads(content)
+    elif method == 'GET' and content.startswith('[') and content.endswith(']'):
+        content = json.loads(content)
     if return_resp:
         return resp, content
     else:
@@ -434,6 +441,13 @@ def non_multipart(params, host, method, path, headers, return_resp,
                               params.encode('utf-8'), headers)
     # reset httplib2 debuglevel to original value
     httplib2.debuglevel = orig_debuglevel
+    # if the content-type is JSON, then convert back to objects.
+    if resp['content-type'].startswith('application/json'):
+        content = json.loads(content)
+    elif method == 'GET' and content.startswith('{') and content.endswith('}'):
+        content = json.loads(content)
+    elif method == 'GET' and content.startswith('[') and content.endswith(']'):
+        content = json.loads(content)
     if return_resp:
         return resp, content
     else:
